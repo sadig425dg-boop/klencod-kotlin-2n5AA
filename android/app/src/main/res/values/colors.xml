@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_primary">#FF0D0E12</color>
+    <color name="bg_secondary">#FF13141A</color>
+    <color name="pink_primary">#FFE040FB</color>
+    <color name="purple_primary">#FF7C4DFF</color>
+    <color name="pink_dark">#FFAD1457</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_40">#66FFFFFF</color>
+    <color name="white_10">#1AFFFFFF</color>
+    <color name="green_status">#FF4CAF50</color>
+    <color name="red_status">#FFF44336</color>
+    <color name="yellow_status">#FFFFEB3B</color>
+</resources>

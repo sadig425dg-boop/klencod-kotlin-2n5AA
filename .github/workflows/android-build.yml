@@ -1,0 +1,142 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-build.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'android/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Android project root
+        run: |
+          echo "=== Validating Android project structure ==="
+          echo "Working directory: $(pwd)"
+          
+          for f in settings.gradle.kts build.gradle.kts gradle.properties gradlew gradlew.bat; do
+            if [ ! -f "$f" ]; then
+              echo "❌ MISSING: $f"
+              exit 1
+            else
+              echo "✅ Found: $f"
+            fi
+          done
+          
+          if [ ! -f "app/build.gradle.kts" ]; then
+            echo "❌ MISSING: app/build.gradle.kts"
+            exit 1
+          else
+            echo "✅ Found: app/build.gradle.kts"
+          fi
+          
+          if [ ! -f "app/src/main/AndroidManifest.xml" ]; then
+            echo "❌ MISSING: app/src/main/AndroidManifest.xml"
+            exit 1
+          else
+            echo "✅ Found: app/src/main/AndroidManifest.xml"
+          fi
+          
+          if [ ! -f "gradle/wrapper/gradle-wrapper.properties" ]; then
+            echo "❌ MISSING: gradle/wrapper/gradle-wrapper.properties"
+            exit 1
+          else
+            echo "✅ Found: gradle/wrapper/gradle-wrapper.properties"
+          fi
+          
+          echo ""
+          echo "✅ All required files present"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Show Gradle version
+        run: ./gradlew --version
+
+      - name: List projects
+        run: ./gradlew projects
+
+      - name: Run unit tests
+        run: ./gradlew test --stacktrace
+
+      - name: Run lint
+        run: ./gradlew lint --stacktrace
+        continue-on-error: true
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Verify APK exists
+        run: |
+          APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK found: $APK_PATH"
+            echo "   Size: $(du -h $APK_PATH | cut -f1)"
+            
+            # Basic APK info via aapt if available
+            if command -v aapt2 &> /dev/null; then
+              echo "=== APK Info ==="
+              aapt2 dump badging "$APK_PATH" 2>/dev/null | head -5 || true
+            fi
+          else
+            echo "❌ APK not found at $APK_PATH"
+            echo "=== Searching for APK ==="
+            find app/build -name "*.apk" 2>/dev/null || echo "No APK files found"
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2n5a-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: android/app/build/reports/lint-results*.html
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: android/app/build/reports/tests/
+          retention-days: 7
+          if-no-files-found: ignore

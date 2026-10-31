@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">2n5a</string>
+    <string name="vpn_notification_channel">VPN Service</string>
+    <string name="vpn_notification_title">2n5a VPN</string>
+    <string name="vpn_connected">متصل</string>
+    <string name="vpn_disconnected">غير متصل</string>
+    <string name="vpn_connecting">جارٍ الاتصال…</string>
+    <string name="action_connect">تشغيل VPN</string>
+    <string name="action_disconnect">إيقاف VPN</string>
+    <string name="action_share_network">مشاركة الشبكة</string>
+    <string name="tab_dashboard">الرئيسية</string>
+    <string name="tab_servers">السيرفرات</string>
+    <string name="tab_subscriptions">الاشتراكات</string>
+    <string name="tab_stats">الإحصائيات</string>
+    <string name="tab_logs">السجلات</string>
+    <string name="tab_settings">الإعدادات</string>
+</resources>
